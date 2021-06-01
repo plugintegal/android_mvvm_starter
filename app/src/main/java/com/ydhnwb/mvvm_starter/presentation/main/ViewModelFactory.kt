@@ -8,7 +8,7 @@ class ViewModelFactory : ViewModelProvider.Factory {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         when {
             modelClass.isAssignableFrom(MainViewModel::class.java) -> {
-                return MainViewModel() as T
+                return MainViewModel("Hello world") as T
             }
             else -> throw Throwable("Unknown ViewModel type")
         }
