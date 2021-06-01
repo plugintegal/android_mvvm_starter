@@ -1,9 +1,14 @@
 package com.ydhnwb.mvvm_starter.presentation.main
 
+import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.ydhnwb.mvvm_starter.data.dto.UserResponse
 import com.ydhnwb.mvvm_starter.databinding.ActivityMainBinding
+import com.ydhnwb.mvvm_starter.presentation.detail.DetailActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -15,18 +20,45 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setupViewModel()
+        setupRecyclerView()
         observe()
-        doDecrement()
-        doIncrement()
+        fetchUserData()
     }
 
     private fun observe(){
         //in old version of kotlin, use viewModel.num.observe(this, Observe { ... })
-        viewModel.num.observe(this, {  handleNum(it )})
+        viewModel.users.observe(this, {  handleUsers(it )})
     }
 
-    private fun handleNum(num: Int){
-        binding.numTextview.text = num.toString()
+    private fun fetchUserData(){
+        viewModel.fetchUsers()
+    }
+
+
+    private fun handleUsers(users: List<UserResponse>){
+        binding.userRecyclerview.adapter?.let { adapter ->
+            if(adapter is MainUserAdapter){
+                adapter.updateList(users)
+            }
+        }
+    }
+
+    private fun goToDetailActivity(user: UserResponse){
+        startActivity(Intent(this@MainActivity, DetailActivity::class.java).apply {
+            putExtra("id", user.id.toString())
+        })
+    }
+
+    private fun setupRecyclerView(){
+        val mainUserAdapter = MainUserAdapter(mutableListOf())
+        mainUserAdapter.setItemTapListener(object : MainUserAdapter.OnItemTap{
+            override fun onTap(user: UserResponse) = goToDetailActivity(user)
+        })
+
+        binding.userRecyclerview.apply {
+            adapter = mainUserAdapter
+            layoutManager = LinearLayoutManager(this@MainActivity)
+        }
     }
 
     private fun setupViewModel(){
@@ -34,15 +66,4 @@ class MainActivity : AppCompatActivity() {
         viewModel = ViewModelProvider(this, factory).get(MainViewModel::class.java)
     }
 
-    private fun doIncrement(){
-        binding.incrementButton.setOnClickListener {
-            viewModel.increment()
-        }
-    }
-
-    private fun doDecrement(){
-        binding.decrementButton.setOnClickListener {
-            viewModel.decrement()
-        }
-    }
 }

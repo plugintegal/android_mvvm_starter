@@ -1,2 +1,2 @@
-## Very Basic Starter with Parameter in ViewModel
-Sometimes we need parameter in viewModel, so we passed it via ViewModelFactory
+## With retrofit
+Multiple ViewModelfactory. Also using retrofit to get data from API
