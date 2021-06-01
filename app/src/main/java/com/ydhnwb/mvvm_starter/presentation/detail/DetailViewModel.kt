@@ -21,9 +21,22 @@ class DetailViewModel(private val userDetailApi: UserDetailApi) : ViewModel() {
     //so we use LiveData for observing in view, since LiveData is immutable. for security reason
     val user : LiveData<UserResponse?> get() = _user
 
+    private val _state = MutableLiveData<DetailActivityState>()
+    val state : LiveData<DetailActivityState> get() = _state
+
+    private fun setLoading(){
+        _state.value = DetailActivityState.IsLoading(true)
+    }
+
+    private fun hideLoading(){
+        _state.value = DetailActivityState.IsLoading(false)
+    }
+
     fun fetchUserById(id: String){
+        setLoading()
         userDetailApi.getUserById(id).enqueue(object : Callback<UserResponse>{
             override fun onResponse(call: Call<UserResponse>, response: Response<UserResponse>) {
+                hideLoading()
                 if (response.isSuccessful){
                     _user.value = response.body()
                 }else{
@@ -32,8 +45,13 @@ class DetailViewModel(private val userDetailApi: UserDetailApi) : ViewModel() {
             }
 
             override fun onFailure(call: Call<UserResponse>, t: Throwable) {
+                hideLoading()
                 Log.e(TAG, t.message.toString())
             }
         })
     }
+}
+
+sealed class DetailActivityState {
+    data class IsLoading(val isLoading: Boolean) : DetailActivityState()
 }

@@ -18,21 +18,44 @@ class MainViewModel(private val userApi: UserApi) : ViewModel(){
     private val _users = MutableLiveData<List<UserResponse>>(mutableListOf())
     val users : LiveData<List<UserResponse>> get() = _users
 
+    private val _state = MutableLiveData<MainActivityState>()
+    val state : LiveData<MainActivityState> get() = _state
+
+    private fun setLoading(){
+        _state.value = MainActivityState.IsLoading(true)
+    }
+
+    private fun hideLoading(){
+        _state.value = MainActivityState.IsLoading(false)
+    }
+
+    private fun showToast(message: String){
+        _state.value = MainActivityState.ShowToast(message)
+    }
+
     fun fetchUsers(){
+        setLoading()
         userApi.users().enqueue(object : Callback<List<UserResponse>>{
             override fun onResponse(call: Call<List<UserResponse>>, response: Response<List<UserResponse>>) {
+                hideLoading()
                 if (response.isSuccessful){
-                    //postValue will set the value in background thread
-                    //if you are dealing with ui state, please use .value instead
                     _users.postValue(response.body())
                 }else{
+                    showToast("Failed to get data")
                     Log.e(TAG, "Failed get data")
                 }
             }
 
             override fun onFailure(call: Call<List<UserResponse>>, t: Throwable) {
+                hideLoading()
+                showToast(t.message.toString())
                 Log.e(TAG, t.message.toString())
             }
         })
     }
+}
+
+sealed class MainActivityState {
+    data class IsLoading(val isLoading: Boolean) : MainActivityState()
+    data class ShowToast(val message: String) : MainActivityState()
 }

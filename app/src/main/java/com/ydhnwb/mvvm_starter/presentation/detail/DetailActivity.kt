@@ -19,9 +19,32 @@ class DetailActivity : AppCompatActivity() {
         observe()
     }
 
-    private fun observe(){
+    private fun observeUser(){
         //use viewLifeCycleOwner if in fragment
         viewModel.user.observe(this, { handleUser(it) })
+    }
+
+    private fun observeState(){
+        viewModel.state.observe(this, { handleState(it) })
+    }
+
+    private fun handleState(state: DetailActivityState){
+        when(state){
+            is DetailActivityState.IsLoading -> handleLoading(state.isLoading)
+        }
+    }
+
+    private fun handleLoading(isShouldShowProgressBar: Boolean){
+        binding.loadingProgressBar.isIndeterminate = isShouldShowProgressBar
+        if(!isShouldShowProgressBar){
+            binding.loadingProgressBar.isIndeterminate = false
+            binding.loadingProgressBar.progress = 0
+        }
+    }
+
+    private fun observe(){
+        observeState()
+        observeUser()
     }
 
     private fun handleUser(user: UserResponse?){
